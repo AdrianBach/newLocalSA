@@ -47,7 +47,7 @@ prd_init_1=100  # argv[22] predator 1 initial density in nb of individuals
 prd_move_1=0.1  # argv[23] predator 1 max movement range in fraction of size
 prd_surv_1=300  # arg[25]
 prd_offs_1=1    # argv[26] predator 1 max number of offspring
-prd_repr_1=$(($prd_surv_1/1))  # argv[27] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
+prd_repr_1=$(($prd_surv_1/2))  # argv[27] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 prd_intr_1=201  # argv[28] predator 1 time of introduction in the model
 prd_ctch_pry1_1=0.1  # argv[29] predator 1 prey1 catch probability
 prd_ctch_pry2_1=0.1  # argv[30] predator 1 prey2 catch probability
@@ -75,8 +75,8 @@ rep=30
 divide=$freq_surv*$pry_cons_1; by=3; pry_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # echo "pry_surv_1 = $pry_surv_1" # by = a third of the max number of consecutive fasting days.
 # pry_surv_2= # argv[14] prey 2 resource units needed to pass survival trial
 divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # echo "pry_surv_2 = $pry_surv_2"
-pry_repr_1=$(($pry_surv_1/1)); # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
-pry_repr_2=$(($pry_surv_2/1)); # argv[18] prey 2 resource units needed to pass reproduction trial
+pry_repr_1=$(($pry_surv_1/2)); # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
+pry_repr_2=$(($pry_surv_2/2)); # argv[18] prey 2 resource units needed to pass reproduction trial
 
 # prd_surv_1=$((3*$pry_surv_1)); # arg[25]
 divide=$((3*$prd_surv_1)); by=$freq_surv; prd_cons_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[24]
@@ -120,7 +120,7 @@ do
             #     divide=$((3*$prd_surv_1)); by=$freq_surv; prd_cons_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`;
 
                 # name the simulation with only the variables of interest and their value
-                sim_name="newSA-py2offs$pry_offs_2" # argv[1]
+                sim_name="newSA-lowReprCost-py2offs$pry_offs_2" # argv[1]
 
                 echo "sim $sim_name"
 
