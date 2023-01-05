@@ -97,7 +97,7 @@ echo "pry2resArray is ${pry2resArray[*]}"
 echo "pry2resArray size is ${#pry2resArray[@]}"
 
 # loop over pry2resArray
-for ((n=0 ; n<${#prey1pry2resArrayinit[@]} ; n++))
+for ((n=0 ; n<${#pry2resArray[@]} ; n++))
 do 
     max_res_2=${pry2resArray[$n]}
 

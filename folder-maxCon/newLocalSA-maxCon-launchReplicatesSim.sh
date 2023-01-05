@@ -76,7 +76,7 @@ divide=$freq_surv*$pry_cons_1; by=3; pry_surv_1=`echo "scale=0; ($divide+$by-1)/
 # pry_surv_2= # argv[14] prey 2 resource units needed to pass survival trial
 # divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # echo "pry_surv_2 = $pry_surv_2"
 pry_repr_1=$pry_surv_1; # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
-pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
+# pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
 # prd_surv_1=$((3*$pry_surv_1)); # arg[25]
 divide=$((3*$prd_surv_1)); by=$freq_surv; prd_cons_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[24]
@@ -101,6 +101,7 @@ for ((n=0 ; n<${#pry2consArray[@]} ; n++))
 do 
     pry_cons_2=${pry2consArray[$n]}   # argv[7] prey 1 initial density in nb of individuals
     divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # echo "pry_surv_2 = $pry_surv_2"
+    pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
     # # loop over prdCatchProb
     # for ((i=0 ; i<${#ctchProbaArray[@]} ; i++))
