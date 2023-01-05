@@ -67,7 +67,7 @@ freq_rslt=$freq_surv    # argv[37] frequency of landscape results shot
 freq_snap=1001  # argv[38] frequency of snapshot measure
 
 # number of replicates
-rep=30
+rep=1
 
 ## Non user defined variables ##
 
