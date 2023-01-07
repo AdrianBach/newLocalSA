@@ -1797,7 +1797,7 @@ ggsave(filename = "localSA-predRegime-density.pdf", path = folderPath, plot = fi
 
 ######## excluding extinctions ########
 
-statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, exclude.ext = FALSE) {
+statsResultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern, exclude.ext = FALSE) {
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -1842,7 +1842,8 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
       
       # path to folder
       # statsFol = paste(path, content[i], "/", simFol[j], "/stats-", simFol[j], sep = "")
-      statsFol = paste(path, simFol[j], "/stats-", simFol[j], sep = "")
+      # statsFol = paste(path, simFol[j], "/stats-", simFol[j], sep = "")
+      statsFol = paste(folder, simFol[j], "stats", sep = "/")
       
       # file.rename(paste(statsFol, results, sep = "/"), paste(statsFol, "/merged", keyword, "-", simFol[j], ".csv", sep = ""))
       
@@ -2008,8 +2009,9 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
   
 } # end of function
 
-Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
-Pattern = "localSA-pred"
+# Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
+Path = "C:/Users/adb3/Desktop/PhD/GitKraken/newLocalSA/"
+Pattern = "newSA-"
 Keyword = "Results"
 
 statsResults(path = Path, keyword = Keyword, pattern = Pattern, exclude.ext = TRUE)
@@ -2027,8 +2029,8 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   content <- grep(pattern = c("folder"), x = content, value = T)
   
   # create table 
-  headers <- c("predSpecific", "predOportunistic", "convRateRatio", "catchProbaRatio", "preyOffspRatio", "maxConsRatio", "replicatesNb",
-               # "prey1extFreq", "prey2extFreq", "pred1extFreq",
+  headers <- c("prey2avgOffs", "prey2convRate", "prey2catchProb", "prey2maxCons", "prey2resAva", 
+               "replicatesNb",
                "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
                "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
                "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
@@ -2049,7 +2051,7 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   after <- c(tEnd-250, tEnd)
   
   # loop over the folders
-  for (i in 1:(length(content)-2)) {
+  for (i in 1:length(content)) {
     
     # path to folder
     # folder = paste("~/", path, content[i], sep = "")
@@ -2065,20 +2067,20 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
     globalFol = list.files(folder)
     
     # select only folders
-    globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
+    globalFol <- grep(pattern = c("allStats"), x = globalFol, value = T)
     
     # # loop over the sim folders
     # for (j in 1:length(globalFol)) {
     
     # get results folder
     resFol <- paste(folder, globalFol, sep = "/")
-    print(paste("in", resFol))
-    
-    # find stats folder and store path
-    
+    # print(paste("in", resFol))
+    # 
+    # # find stats folder and store path
+    # 
     # get results files
     statsFol <- list.files(resFol)
-    
+
     # find stats folder and store path
     statsFol <- grep(pattern = c("ResultsFiles-woExt"), x = statsFol, value = T)
     print(paste("in", statsFol))
@@ -2099,20 +2101,21 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
       print(paste("in results file", results[j]))
       
       # get param values and nb of rep
+      # get param values and nb of rep
       strg = results[j]
       
       strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
       strg = unlist(strsplit(strg, split = "-")) # split according to "-"
-      strg = strg[-c(1:2)] # take out non param elements
+      strg = strg[-c(1, 2)] # take out non param elements
+      # strg = strg[-c(1, 2, 3, 4)] # take out non param elements
+      
+      varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+      baseValues = c(1, 100, 0.1, 10, 100)
       
       # get param values 
-      newLine <- c(newLine,
-                   sub(x = strg[1], pattern = paste("predSpcf", "*", sep = ""), replacement = ""), # add to newLine everything after XparamName
-                   sub(x = strg[2], pattern = paste("predOpnt", "*", sep = ""), replacement = ""),
-                   sub(x = strg[3], pattern = paste("pryConvRateRatio", "*", sep = ""), replacement = ""),
-                   sub(x = strg[4], pattern = paste("pryCtchProbRatio", "*", sep = ""), replacement = ""),
-                   sub(x = strg[5], pattern = paste("pryOfspRatio", "*", sep = ""), replacement = ""),
-                   sub(x = strg[6], pattern = paste("pryMaxConsRatio", "*", sep = ""), replacement = ""))
+      for (k in 1:length(varNames)) {
+        newLine <- c(newLine, ifelse(str_detect(string = strg, pattern = varNames[k]), as.numeric(sub(x = strg, pattern = paste(varNames[k], "*", sep = ""), replacement = "")), baseValues[k]))
+      }
       
       # # initiate extinctions counters
       # pry1ext = 0
@@ -2185,7 +2188,7 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   
 } # end of function
 
-Pattern = "Stats"
+# Pattern = "Stats"
 
 localSAresultsNoExt(path = Path, keyword = Keyword, pattern = Pattern)
 
