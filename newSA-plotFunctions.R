@@ -1,3 +1,6 @@
+library(ggplot2)
+library(stringr)
+
 ######## New figures for density ########
 
 # Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
@@ -105,7 +108,7 @@ fig <- ggplot(data, aes(x)) +
   # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
   # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
   # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
-  geom_rect(aes(xmin = 0.08, xmax = .12, ymin = 0, ymax = 1.05*max(max(y2max), max(y4max))), alpha=0.5, fill = "lightgrey") +
+  geom_rect(aes(xmin = 0.08, xmax = 0.12, ymin = 0, ymax = 1.05*max(max(y2max), max(y4max))), alpha=0.5, fill = "lightgrey") +
   geom_hline(yintercept = y1[1], alpha = 0.5, color = "black", linetype = "dashed") +
   # geom_line(aes(y = y1), color = y1c, alpha = 0.2, position = position_nudge(x = -0.2)) +
   geom_line(aes(y = y2), color = y2c, alpha = 0.2, position = position_nudge(x = -0.01)) +
@@ -673,24 +676,63 @@ plotDens <- function(dataSet, xVal, recWdt = c(0,0), posNud, xLabel, display = c
     scale_x_continuous(breaks = x, labels = x) + 
     theme(panel.grid.minor = element_blank())
   
-  if (display == TRUE) {fig}
-  
   # save plot in this folder
   if (save == TRUE) {
     ggsave(filename = saveName, path = savePath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
   }
+  
+  if (display == TRUE) {return(fig)}
 }
 
-
+######## excluding extinction ########
 
 # Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
 # Path = "/home/adrian/Documents/GitKraken/ne"
 Path = "C:/Users/adb3/Desktop/PhD/GitKraken/newLocalSA/"
 
 # available resources
-folderPath = paste(Path, "folder-resAva/allStatsAndPlots/localSAfiles/", sep = "")
-filePath = paste(folderPath, "stats-folder-resAva.csv", sep = "")
+# folderPath = paste(Path, "folder-resAva/allStatsAndPlots/localSAfiles/", sep = "")
+# filePath = paste(folderPath, "stats-folder-resAva.csv", sep = "")
+# 
+# data <- read.csv(filePath)
+# 
+# plotDens(dataSet = data, xVal = data$prey2resAva, recWdt = c(90, 110), posNud = 7, xLabel = "prey 2 maximum resources available", display = TRUE, saveName = "plotFunTest.pdf", savePath = folderPath, save = TRUE)
+
+folderPath = paste(Path, "folder-resAva/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-stats-folder-resAva.csv", sep = "")
 
 data <- read.csv(filePath)
 
-plotDens(dataSet = data, xVal = data$prey2resAva, recWdt = c(90, 110), posNud = 7, xLabel = "prey 2 maximum resources available", display = TRUE, saveName = "plotFunTest.pdf", savePath = folderPath, save = TRUE)
+plotDens(dataSet = data, xVal = data$prey2resAva, recWdt = c(93, 107), posNud = 5, xLabel = "prey 2 maximum resources available", display = TRUE, saveName = "newSA-prey2maxRes-density-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# avgoff
+folderPath = paste(Path, "folder-avgOff/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-stats-folder-avgOff.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotDens(dataSet = data, xVal = data$prey2avgOffs, recWdt = c(0.75, 1.35), posNud = 0.20, xLabel = "prey 2 birth rate", display = TRUE, saveName = "newSA-prey2avgOff-density-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# cnvRte
+folderPath = paste(Path, "folder-cnvRte/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-stats-folder-cnvRte.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotDens(dataSet = data, xVal = data$prey2convRate, recWdt = c(93, 107), posNud = 5, xLabel = "prey 2 resources/catch", display = TRUE, saveName = "newSA-prey2cnvRte-density-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# ctchPr
+folderPath = paste(Path, "folder-ctchPr/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-stats-folder-ctchPr.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotDens(dataSet = data, xVal = data$prey2catchProb, recWdt = c(0.09, 0.11), posNud = 0.005, xLabel = "prey 2 catch probability", display = TRUE, saveName = "newSA-prey2ctchPr-density-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# maxCon
+folderPath = paste(Path, "folder-maxCon/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-stats-folder-maxCon.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotDens(dataSet = data, xVal = data$prey2maxCons, recWdt = c(9, 11), posNud = 0.5, xLabel = "prey 2 maximum consumption", display = TRUE, saveName = "newSA-prey2maxCon-density-woExt.pdf", savePath = folderPath, save = TRUE)
