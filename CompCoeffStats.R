@@ -3634,7 +3634,7 @@ ggsave(filename = "localSA-allRegime-ConvRate-over1-density.pdf", path = folderP
 
 #### SA dev function ####
 
-SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern, baseMeanDens, baseMeanAmplitute) {
+SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern) { # , baseMeanDens, baseAmplitude
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -3689,6 +3689,71 @@ SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern
     # select only folders
     globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
     
+    ## compute baseMeanDens and Ampl
+    # find baseline param
+    simNames = c("avgOff", "cnvRte", "ctchPr", "maxCon", "resAva")
+    varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+    baseValues = c(1, 100, 0.1, 10, 100)
+    
+    # in which case are we
+    baseIndex = which(str_detect(string = content[i], pattern = simNames))
+    baseNam = varNames[baseIndex]
+    baseVal = baseValues[baseIndex]
+    
+    # open base folder
+    baseFol <- grep(pattern = c(paste(baseNam, baseVal, sep = "")), x = globalFol, value = T)[1]
+    
+    baseFolPath <- paste(folder, baseFol, sep = "/")
+    
+    # get results files
+    statsFol <- list.files(baseFolPath)
+    
+    # find stats folder and store path
+    statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+    print(paste("in", paste(baseFolPath, statsFol, sep = "/")))
+    
+    results <- list.files(paste(baseFolPath, statsFol, sep = "/"))
+    
+    # only csv files
+    results <- grep(pattern = c("merged"), x = results, value = T)
+    
+    # only the results files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    # read the merged results file
+    res <- read.csv(paste(baseFolPath, statsFol, results[j], sep = "/"))
+    
+    replicates <- levels(as.factor(res$replicate))
+    densDev <- NULL
+    amplDev <- NULL
+    
+    for (n in 1:length(replicates)) {
+      # subset replicate
+      sub <- subset(res, res$replicate == replicates[n])
+      
+      if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+        # print(paste("replicate", n, "ended in extinction"))
+        
+      } else {
+        
+        # calculus
+        # subset after
+        subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+        
+        # compute dev from base line
+        densDev <- c(densDev, mean(subAfter$prey1PopulationSize))
+        
+        # compute amplitude dev
+        amplDev <- c(amplDev, max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) #  - 1)
+        
+      }
+    }
+      
+    # perform stats
+    baseMeanDens = mean(densDev)
+    baseAmplitude = mean(amplDev)
+    
+    
     # loop over the sim folders
     for (k in 1:length(globalFol)) {
       
@@ -3727,13 +3792,14 @@ SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern
       strg = strg[-1] # take out non param elements
       # strg = strg[-c(1, 2, 3, 4)] # take out non param elements
       
-      varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
-      baseValues = c(1, 100, 0.1, 10, 100)
+      # varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+      # baseValues = c(1, 100, 0.1, 10, 100)
       
       # get param values 
       for (m in 1:length(varNames)) {
         newLine <- c(newLine, ifelse(str_detect(string = strg, pattern = varNames[m]), as.numeric(sub(x = strg, pattern = paste(varNames[m], "*", sep = ""), replacement = "")), baseValues[m]))
       }
+      
       
       for (j in 1:length(results)) {
         
@@ -3791,17 +3857,18 @@ SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern
             subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
             
             # compute dev from base line
-            densDev <- c(densDev, mean(subAfter$prey1PopulationSize) - baseMeanDens)
+            densDev <- c(densDev, (mean(subAfter$prey1PopulationSize) - baseMeanDens)  / baseMeanDens)
             
             # compute amplitude dev
-            amplDev <- c(amplDev, (max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) - baseMeanAmplitute)
+            amplDev <- c(amplDev, ((max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) - baseAmplitude) / baseAmplitude) #  - 1)
+              
           }
         }
         
         # go to next pqrqm set if only extinctions
         if (repNb == 0) {next}
         
-        # get nb of replicates
+        # add nb of replicates
         newLine <- c(newLine, repNb)
         
         # # subset before pred introduction
@@ -3853,9 +3920,9 @@ Path = "C:/Users/adb3/Desktop/PhD/GitKraken/newLocalSA/"
 Pattern = "newSA-"
 Keyword = "Results"
 
-# get base mean values
-ds <- read.csv(file = paste(Path, "/folder-avgOff/allStatsAndPlots/localSAfiles-woExt/woExt-stats-folder-avgOff.csv", sep = ""))
-BaseMeanDens = ds$prey1densAfterMean[which(ds$prey2avgOffs == 1)]
-BaseMeanAmplitude = ds$prey1densAfterMax[which(ds$prey2avgOffs == 1)]-ds$prey1densAfterMin[which(ds$prey2avgOffs == 1)]
+# # get base mean values
+# ds <- read.csv(file = paste(Path, "/folder-avgOff/allStatsAndPlots/localSAfiles-woExt/woExt-stats-folder-avgOff.csv", sep = ""))
+# BaseMeanDens = ds$prey1densAfterMean[which(ds$prey2avgOffs == 1)]
+# BaseMeanAmplitude = ds$prey1densAfterMax[which(ds$prey2avgOffs == 1)]-ds$prey1densAfterMin[which(ds$prey2avgOffs == 1)]
 
-SAcondensedResults(path = Path, keyword = Keyword, pattern = Pattern, baseMeanDens = BaseMeanDens, baseMeanAmplitute = BaseMeanAmplitude)
+SAcondensedResults(path = Path, keyword = Keyword, pattern = Pattern) # , baseMeanDens = BaseMeanDens, baseMeanAmplitute = BaseMeanAmplitude

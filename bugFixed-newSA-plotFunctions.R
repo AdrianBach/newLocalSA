@@ -626,7 +626,7 @@ ggsave(filename = "newSA-prey2maxCons-extFreq.pdf", path = folderPath, plot = fi
 ######## function ########
 
 plotDens <- function(dataSet, xVal, recWdt = c(0,0), posNud, xLabel, display = c(TRUE, FALSE), saveName = "densFig.pdf", savePath, save = c(TRUE, FALSE)) {
-
+  
   x = xVal
   y1 = dataSet$prey1densBeforeMean
   y2 = dataSet$prey1densAfterMean
@@ -739,17 +739,17 @@ plotDens(dataSet = data, xVal = data$prey2maxCons, recWdt = c(9, 11), posNud = 0
 
 ######## SA dev plots ########
 
-plotSADensDev <- function(dataSet, xBase, densBase, xLabel, display = c(TRUE, FALSE), saveName = "densFig.pdf", savePath, save = c(TRUE, FALSE)) {
+plotSADensDev <- function(dataSet, xVal, xLabel, wd, display = c(TRUE, FALSE), saveName = "densFig.pdf", savePath, save = c(TRUE, FALSE)) {
   
   x = xVal
-  baseIndex = which(xVal == xBase)
-  dataSet$densityDevMean[baseIndex] = 0
-  dataSet$densDevICinf[baseIndex] = 0
-  dataSet$densDevICsup[baseIndex] = 0
+  # baseIndex = which(xVal == xBase)
+  # dataSet$densityDevMean[baseIndex] = 0
+  # dataSet$densDevICinf[baseIndex] = 0
+  # dataSet$densDevICsup[baseIndex] = 0
   
-  fig <- ggplot(dataSet, aes(x=prey2avgOffs, y=densityDevMean/densBase, colour="red")) + 
+  fig <- ggplot(dataSet, aes(x=x, y=densityDevMean, colour="red")) + 
     geom_hline(yintercept = 0, alpha = 0.5, color = "black", linetype = "dashed") +
-    geom_errorbar(aes(ymin=densDevICinf/densBase, ymax=densDevICsup/densBase), width=.2, col="darkred") +
+    geom_errorbar(aes(ymin=densDevICinf, ymax=densDevICsup), width=wd, col="darkred") +
     geom_line(alpha = 0.2) +
     geom_point(shape = 21, size = 2.5, fill = "white") +
     labs(x = xLabel, y = "Deviation in prey 1 equilibrium density") +
@@ -765,20 +765,20 @@ plotSADensDev <- function(dataSet, xBase, densBase, xLabel, display = c(TRUE, FA
   if (display == TRUE) {return(fig)}
 }
 
-plotSAamplitudeDev <- function(dataSet, xBase, amplBase, xLabel, display = c(TRUE, FALSE), saveName = "densFig.pdf", savePath, save = c(TRUE, FALSE)) {
+plotSAamplDev <- function(dataSet, xVal, xLabel, wd, display = c(TRUE, FALSE), saveName = "densFig.pdf", savePath, save = c(TRUE, FALSE)) {
   
   x = xVal
-  baseIndex = which(xVal == xBase)
-  dataSet$amplitudeDevMean[baseIndex] = 0
-  dataSet$ampldevICinf[baseIndex] = 0
-  dataSet$ampldevICsup[baseIndex] = 0
+  # baseIndex = which(xVal == xBase)
+  # dataSet$amplitudeDevMean[baseIndex] = 0
+  # dataSet$ampldevICinf[baseIndex] = 0
+  # dataSet$ampldevICsup[baseIndex] = 0
   
-  fig <- ggplot(dataSet, aes(x=x, y=amplitudeDevMean/amplBase, colour="red")) + 
+  fig <- ggplot(dataSet, aes(x=x, y=amplitudeDevMean, colour="red")) + 
     geom_hline(yintercept = 0, alpha = 0.5, color = "black", linetype = "dashed") +
-    geom_errorbar(aes(ymin=ampldevICinf/amplBase, ymax=ampldevICsup/amplBase), width=.2, col="darkred") +
+    geom_errorbar(aes(ymin=ampldevICinf, ymax=ampldevICsup), width=wd, col="darkred") +
     geom_line(alpha = 0.2) +
     geom_point(shape = 21, size = 2.5, fill = "white") +
-    labs(x = xLabel, y = "Deviation in prey 1 density oscillations amplitude") +
+    labs(x = xLabel, y = "Deviation in prey 1 density oscillations range") +
     scale_x_continuous(breaks = x, labels = x) +
     theme(panel.grid.minor = element_blank()) +
     theme(legend.position = "none")
@@ -794,10 +794,10 @@ plotSAamplitudeDev <- function(dataSet, xBase, amplBase, xLabel, display = c(TRU
 # Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
 Path = "C:/Users/adb3/Desktop/PhD/GitKraken/newLocalSA/"
 
-# get base mean values
-ds <- read.csv(file = paste(Path, "/folder-avgOff/allStatsAndPlots/localSAfiles-woExt/woExt-stats-folder-avgOff.csv", sep = ""))
-BaseMeanDens = ds$prey1densAfterMean[which(ds$prey2avgOffs == 1)]
-BaseMeanAmplitude = ds$prey1densAfterMax[which(ds$prey2avgOffs == 1)]-ds$prey1densAfterMin[which(ds$prey2avgOffs == 1)]
+# # get base mean values
+# ds <- read.csv(file = paste(Path, "/folder-avgOff/allStatsAndPlots/localSAfiles-woExt/woExt-stats-folder-avgOff.csv", sep = ""))
+# BaseMeanDens = ds$prey1densAfterMean[which(ds$prey2avgOffs == 1)]
+# BaseMeanAmplitude = ds$prey1densAfterMax[which(ds$prey2avgOffs == 1)]-ds$prey1densAfterMin[which(ds$prey2avgOffs == 1)]
 
 # avgOff
 folderPath = paste(Path, "folder-avgOff/allStatsAndPlots/localSAfiles-woExt/", sep = "")
@@ -805,4 +805,41 @@ filePath = paste(folderPath, "woExt-SAdevStats-folder-avgOff.csv", sep = "")
 
 data <- read.csv(filePath)
 
-plotSADensDev(dataSet = data, xVal = data$prey2resAva, recWdt = c(93, 107), posNud = 5, xLabel = "prey 2 maximum resources available", display = TRUE, saveName = "newSA-prey2maxRes-density-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSADensDev(dataSet = data, xVal = data$prey2avgOffs, xLabel = "prey 2 birth rate", wd = 0.2, display = TRUE, saveName = "newSA-densityDev-prey2avgOff-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDev(dataSet = data, xVal = data$prey2avgOffs, xLabel = "prey 2 birth rate", wd = 0.2, display = TRUE, saveName = "newSA-amplitudeDev-prey2avgOff-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# cnvRte
+folderPath = paste(Path, "folder-cnvRte/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-SAdevStats-folder-cnvRte.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotSADensDev(dataSet = data, xVal = data$prey2convRate, xLabel = "prey 2 resources per catch", wd = 2.5, display = TRUE, saveName = "newSA-densityDev-prey2cnvRte-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDev(dataSet = data, xVal = data$prey2convRate, xLabel = "prey 2 resources per catch", wd = 2.5, display = TRUE, saveName = "newSA-amplitudeDev-prey2avgOff-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# ctchPr
+folderPath = paste(Path, "folder-ctchPr/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-SAdevStats-folder-ctchPr.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotSADensDev(dataSet = data, xVal = data$prey2catchProb, xLabel = "prey 2 catchProbability", wd = 0.005, display = TRUE, saveName = "newSA-densityDev-prey2ctchPr-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDev(dataSet = data, xVal = data$prey2catchProb, xLabel = "prey 2 catchProbability", wd = 0.005, display = TRUE, saveName = "newSA-amplitudeDev-prey2ctchPr-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# maxCon
+folderPath = paste(Path, "folder-maxCon/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-SAdevStats-folder-maxCon.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotSADensDev(dataSet = data, xVal = data$prey2maxCons, xLabel = "prey 2 max consumption", wd = 0.5, display = TRUE, saveName = "newSA-densityDev-prey2maxCon-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDev(dataSet = data, xVal = data$prey2maxCons, xLabel = "prey 2 max consumption", wd = 0.5, display = TRUE, saveName = "newSA-amplitudeDev-prey2maxCon-woExt.pdf", savePath = folderPath, save = TRUE)
+
+# resAva
+folderPath = paste(Path, "folder-resAva/allStatsAndPlots/localSAfiles-woExt/", sep = "")
+filePath = paste(folderPath, "woExt-SAdevStats-folder-resAva.csv", sep = "")
+
+data <- read.csv(filePath)
+
+plotSADensDev(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 max resources available", wd = 2, display = TRUE, saveName = "newSA-densityDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDev(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 max resources available", wd = 2, display = TRUE, saveName = "newSA-amplitudeDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
