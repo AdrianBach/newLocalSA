@@ -151,7 +151,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   content <- grep(pattern = c("folder"), x = content, value = T)
   
   # loop over the local SA folders
-  for (i in 3:length(content)) {
+  for (i in 1:length(content)) {
     
     # path to folder
     folder = paste(path, content[i], sep = "")
