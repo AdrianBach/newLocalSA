@@ -314,7 +314,9 @@ localSAresults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
                "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
                "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
                "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
-               "prey2catchesMean", "prey2catchesMax", "prey2catchesMin")
+               "prey2catchesMean", "prey2catchesMax", "prey2catchesMin",
+               "prey1catchRateMean", "prey1catchRateMax", "prey1catchRateMin",
+               "prey2catchRateMean", "prey2catchRateMax", "prey2catchRateMin")
   
   # set before after intervals
   tIntro = 210
@@ -442,7 +444,9 @@ localSAresults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
                    mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
                    mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
                    mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
-                   mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+                   mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean),
+                   mean(sub$prey1catchesMean/sub$prey1PopulationSizeMean), max(sub$prey1catchesMean/sub$prey1PopulationSizeMean), min(sub$prey1catchesMean/sub$prey1PopulationSizeMean),
+                   mean(sub$prey2catchesMean/sub$prey2PopulationSizeMean), max(sub$prey2catchesMean/sub$prey2PopulationSizeMean), min(sub$prey2catchesMean/sub$prey2PopulationSizeMean))
       
       # rbind the line to tab
       tab <- rbind(tab, as.numeric(newLine))
@@ -2042,7 +2046,9 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
                "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
                "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
                "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
-               "prey2catchesMean", "prey2catchesMax", "prey2catchesMin")
+               "prey2catchesMean", "prey2catchesMax", "prey2catchesMin",
+               "prey1catchRateMean", "prey1catchRateMax", "prey1catchRateMin",
+               "prey2catchRateMean", "prey2catchRateMax", "prey2catchRateMin")
   
   # set before after intervals
   tIntro = 210
@@ -2080,13 +2086,13 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
     # 
     # get results files
     statsFol <- list.files(resFol)
-
+    
     # find stats folder and store path
     statsFol <- grep(pattern = c("ResultsFiles-woExt"), x = statsFol, value = T)
     print(paste("in", statsFol))
     
     results <- list.files(paste(resFol, statsFol, sep = "/"))
-
+    
     # only csv files
     results <- grep(pattern = c(".csv"), x = results, value = T)
     
@@ -2169,7 +2175,9 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
                    mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
                    mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
                    mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
-                   mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+                   mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean),
+                   mean(sub$prey1catchesMean/sub$prey1PopulationSizeMean), max(sub$prey1catchesMean/sub$prey1PopulationSizeMean), min(sub$prey1catchesMean/sub$prey1PopulationSizeMean),
+                   mean(sub$prey2catchesMean/sub$prey2PopulationSizeMean), max(sub$prey2catchesMean/sub$prey2PopulationSizeMean), min(sub$prey2catchesMean/sub$prey2PopulationSizeMean))
       
       # rbind the line to tab
       tab <- rbind(tab, as.numeric(newLine))
@@ -2187,7 +2195,6 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   } # end loop over folders
   
 } # end of function
-
 # Pattern = "Stats"
 
 localSAresultsNoExt(path = Path, keyword = Keyword, pattern = Pattern)
@@ -3721,7 +3728,7 @@ SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern
     results <- grep(pattern = c(keyword), x = results, value = T)
     
     # read the merged results file
-    res <- read.csv(paste(baseFolPath, statsFol, results[j], sep = "/"))
+    res <- read.csv(paste(baseFolPath, statsFol, results, sep = "/"))
     
     replicates <- levels(as.factor(res$replicate))
     densDev <- NULL
@@ -3915,6 +3922,956 @@ SAcondensedResults <- function(path, keyword = c("Results", "Snapshot"), pattern
   
 } # end of function
 
+SAcondensedResultsPrey2 <- function(path, keyword = c("Results", "Snapshot"), pattern) { # , baseMeanDens, baseAmplitude
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c("folder"), x = content, value = T)
+  
+  # create headers list 
+  headers <- c("prey2avgOffs", "prey2convRate", "prey2catchProb", "prey2maxCons", "prey2resAva", 
+               "replicatesNb",
+               # "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
+               # "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
+               # "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
+               # "prey2growthBeforeMean", "prey2growthBeforeMax", "prey2growthBeforeMin",
+               # "prey1densAfterMean", "prey1densAfterMax", "prey1densAfterMin",
+               # "prey2densAfterMean", "prey2densAfterMax", "prey2densAfterMin",
+               # "predatorDensMean", "predatorDensMax", "predatorDensMin",
+               # "prey1growthAfterMean", "prey1growthAfterMax", "prey1growthAfterMin",
+               # "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
+               # "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
+               # "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
+               # "prey2catchesMean", "prey2catchesMax", "prey2catchesMin",
+               "densityDevMean", "densDevICinf", "densDevICsup",
+               "amplitudeDevMean", "ampldevICinf", "ampldevICsup")
+  
+  # set before after intervals
+  # tIntro = 210
+  tEnd = 1000
+  # before <- c(tIntro-100, tIntro)
+  after <- c(tEnd-250, tEnd)
+  
+  # loop over the folders
+  for (i in 1:length(content)) {
+    
+    # path to folder
+    # folder = paste("~/", path, content[i], sep = "")
+    folder = paste(path, content[i], sep = "")
+    print(paste("in localSA folder ", i, ": ", folder))# get the value of XparamName
+    
+    tab <- data.frame(matrix(ncol = length(headers), nrow = 0))
+    
+    # # name columns
+    # colnames(tab) <- headers
+    
+    # get content
+    globalFol = list.files(folder)
+    
+    # select only folders
+    globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
+    
+    ## compute baseMeanDens and Ampl
+    # find baseline param
+    simNames = c("avgOff", "cnvRte", "ctchPr", "maxCon", "resAva")
+    varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+    baseValues = c(1, 100, 0.1, 10, 100)
+    
+    # in which case are we
+    baseIndex = which(str_detect(string = content[i], pattern = simNames))
+    baseNam = varNames[baseIndex]
+    baseVal = baseValues[baseIndex]
+    
+    # open base folder
+    baseFol <- grep(pattern = c(paste(baseNam, baseVal, sep = "")), x = globalFol, value = T)[1]
+    
+    baseFolPath <- paste(folder, baseFol, sep = "/")
+    
+    # get results files
+    statsFol <- list.files(baseFolPath)
+    
+    # find stats folder and store path
+    statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+    print(paste("in", paste(baseFolPath, statsFol, sep = "/")))
+    
+    results <- list.files(paste(baseFolPath, statsFol, sep = "/"))
+    
+    # only csv files
+    results <- grep(pattern = c("merged"), x = results, value = T)
+    
+    # only the results files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    # read the merged results file
+    res <- read.csv(paste(baseFolPath, statsFol, results, sep = "/"))
+    
+    replicates <- levels(as.factor(res$replicate))
+    densDev <- NULL
+    amplDev <- NULL
+    
+    for (n in 1:length(replicates)) {
+      # subset replicate
+      sub <- subset(res, res$replicate == replicates[n])
+      
+      if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+        # print(paste("replicate", n, "ended in extinction"))
+        
+      } else {
+        
+        # calculus
+        # subset after
+        subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+        
+        # compute dev from base line
+        densDev <- c(densDev, mean(subAfter$prey2PopulationSize))
+        
+        # compute amplitude dev
+        amplDev <- c(amplDev, max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) #  - 1)
+        
+      }
+    }
+    
+    # perform stats
+    baseMeanDens = mean(densDev)
+    baseAmplitude = mean(amplDev)
+    
+    
+    # loop over the sim folders
+    for (k in 1:length(globalFol)) {
+      
+      # get results folder
+      resFol <- paste(folder, globalFol[k], sep = "/")
+      # print(paste("in", resFol))
+      # 
+      # # find stats folder and store path
+      # 
+      # get results files
+      statsFol <- list.files(resFol)
+      
+      # find stats folder and store path
+      statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+      print(paste("in", paste(resFol, statsFol, sep = "/")))
+      
+      results <- list.files(paste(resFol, statsFol, sep = "/"))
+      
+      # only csv files
+      results <- grep(pattern = c("merged"), x = results, value = T)
+      
+      # only the results files
+      results <- grep(pattern = c(keyword), x = results, value = T)
+      
+      # print(paste("in simFolder", globalFol[k]))
+      
+      # initiate new line
+      newLine <- NULL
+      
+      # get param values and nb of rep
+      # get param values and nb of rep
+      strg = globalFol[k]
+      
+      # strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
+      strg = unlist(strsplit(strg, split = "-")) # split according to "-"
+      strg = strg[-1] # take out non param elements
+      # strg = strg[-c(1, 2, 3, 4)] # take out non param elements
+      
+      # varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+      # baseValues = c(1, 100, 0.1, 10, 100)
+      
+      # get param values 
+      for (m in 1:length(varNames)) {
+        newLine <- c(newLine, ifelse(str_detect(string = strg, pattern = varNames[m]), as.numeric(sub(x = strg, pattern = paste(varNames[m], "*", sep = ""), replacement = "")), baseValues[m]))
+      }
+      
+      
+      for (j in 1:length(results)) {
+        
+        # # initiate extinctions counters
+        # pry1ext = 0
+        # pry2ext = 0
+        # predExt = 0
+        # 
+        # # loop over the results files
+        # for (m in 1:length(results)) {
+        #   
+        #   # print(paste("reading file ", results[m]))
+        #   # read results
+        #   res <- read.csv(paste(resFol, results[m], sep = "/"))
+        #   
+        #   # count extinctions
+        #   if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
+        #   if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
+        #   if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
+        #   
+        # } # end loop over files (replicates)
+        # 
+        # # update new line
+        # newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
+        
+        # # browse stats folder and read stats
+        # stats <- list.files(paste(resFol, statsFol, sep = "/"))
+        # stats <- grep(pattern = c("stats"), x = stats, value = T)
+        # stats <- grep(pattern = c(".csv"), x = stats, value = T)
+        
+        res <- read.csv(paste(resFol, statsFol, results[j], sep = "/"))
+        
+        # # create temporary table
+        # temp <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
+        
+        # subset merged results and move to temp only if no extinction
+        replicates <- levels(as.factor(res$replicate))
+        repNb = 0
+        densDev <- NULL
+        amplDev <- NULL
+        
+        for (n in 1:length(replicates)) {
+          # subset replicate
+          sub <- subset(res, res$replicate == replicates[n])
+          
+          if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+            print(paste("replicate", n, "ended in extinction"))
+            
+          } else {
+            # increase repNb 
+            repNb <- repNb + 1
+            
+            # calculus
+            # subset after
+            subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+            
+            # compute dev from base line
+            densDev <- c(densDev, (mean(subAfter$prey2PopulationSize) - baseMeanDens)  / baseMeanDens)
+            
+            # compute amplitude dev
+            amplDev <- c(amplDev, ((max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) - baseAmplitude) / baseAmplitude) #  - 1)
+            
+          }
+        }
+        
+        # go to next pqrqm set if only extinctions
+        if (repNb == 0) {next}
+        
+        # add nb of replicates
+        newLine <- c(newLine, repNb)
+        
+        # # subset before pred introduction
+        # sub <- subset(res, subset = res$timeStep >= before[1] & res$timeStep < before[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100))
+        # 
+        # # subset after
+        # sub <- subset(res, subset = res$timeStep >= after[1] & res$timeStep <= after[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$predator1PopulationSizeMean), max(sub$predator1PopulationSizeMean), min(sub$predator1PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
+        #              mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
+        #              mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
+        #              mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+        
+        # perform stats
+        newLine <- c(newLine, mean(densDev), boot_sd_ci(densDev)[-1], mean(amplDev), boot_sd_ci(amplDev)[-1])
+        
+        # rbind the line to tab
+        tab <- rbind(tab, as.numeric(newLine))
+        
+      } # end loop over results folders
+      
+    } # end loop over globalFol
+    
+    # name columns
+    colnames(tab) <- headers
+    
+    # create local SA results folder in allStatsAndPlots and save table
+    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles-woExt", sep = "/")
+    # dir.create(path = newFolderDir)
+    write.csv(tab, file = paste(newFolderDir, "/woExt-SAdevStats-prey2", content[i], ".csv", sep = ""), row.names = FALSE)
+    
+  } # end loop over folders
+  
+}
+
+SAcondensedResultsAll <- function(path, keyword = c("Results", "Snapshot"), pattern) { # , baseMeanDens, baseAmplitude
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c("folder"), x = content, value = T)
+  
+  # create headers list 
+  headers <- c("prey2avgOffs", "prey2convRate", "prey2catchProb", "prey2maxCons", "prey2resAva", 
+               "replicatesNb",
+               # "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
+               # "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
+               # "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
+               # "prey2growthBeforeMean", "prey2growthBeforeMax", "prey2growthBeforeMin",
+               # "prey1densAfterMean", "prey1densAfterMax", "prey1densAfterMin",
+               # "prey2densAfterMean", "prey2densAfterMax", "prey2densAfterMin",
+               # "predatorDensMean", "predatorDensMax", "predatorDensMin",
+               # "prey1growthAfterMean", "prey1growthAfterMax", "prey1growthAfterMin",
+               # "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
+               # "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
+               # "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
+               # "prey2catchesMean", "prey2catchesMax", "prey2catchesMin",
+               "prey1densityDevMean", "prey1densDevICinf", "prey1densDevICsup", "prey1densDevMin", "prey1densDevMax",
+               "prey1amplituDevMean", "prey1ampldevICinf", "prey1ampldevICsup",
+               "prey2densityDevMean", "prey2densDevICinf", "prey2densDevICsup", "prey2densDevMin", "prey2densDevMax",
+               "prey2amplituDevMean", "prey2ampldevICinf", "prey2ampldevICsup",
+               "pred1densityDevMean", "pred1densDevICinf", "pred1densDevICsup", "pred1densDevMin", "pred1densDevMax",
+               "pred1amplituDevMean", "pred1ampldevICinf", "pred1ampldevICsup")
+  
+  # set before after intervals
+  # tIntro = 210
+  tEnd = 1000
+  # before <- c(tIntro-100, tIntro)
+  after <- c(tEnd-250, tEnd)
+  
+  # loop over the folders
+  for (i in 1:length(content)) {
+    
+    # path to folder
+    # folder = paste("~/", path, content[i], sep = "")
+    folder = paste(path, content[i], sep = "")
+    print(paste("in localSA folder ", i, ": ", folder))# get the value of XparamName
+    
+    tab <- data.frame(matrix(ncol = length(headers), nrow = 0))
+    
+    # # name columns
+    # colnames(tab) <- headers
+    
+    # get content
+    globalFol = list.files(folder)
+    
+    # select only folders
+    globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
+    
+    ## compute baseMeanDens and Ampl
+    # find baseline param
+    simNames = c("avgOff", "cnvRte", "ctchPr", "maxCon", "resAva")
+    varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+    baseValues = c(1, 100, 0.1, 10, 100)
+    
+    # in which case are we
+    baseIndex = which(str_detect(string = content[i], pattern = simNames))
+    baseNam = varNames[baseIndex]
+    baseVal = baseValues[baseIndex]
+    
+    # open base folder
+    baseFol <- grep(pattern = c(paste(baseNam, baseVal, sep = "")), x = globalFol, value = T)[1]
+    
+    baseFolPath <- paste(folder, baseFol, sep = "/")
+    
+    # get results files
+    statsFol <- list.files(baseFolPath)
+    
+    # find stats folder and store path
+    statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+    print(paste("in", paste(baseFolPath, statsFol, sep = "/")))
+    
+    results <- list.files(paste(baseFolPath, statsFol, sep = "/"))
+    
+    # only csv files
+    results <- grep(pattern = c("merged"), x = results, value = T)
+    
+    # only the results files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    # read the merged results file
+    res <- read.csv(paste(baseFolPath, statsFol, results, sep = "/"))
+    
+    replicates <- levels(as.factor(res$replicate))
+    densDevPrey1 <- NULL
+    amplDevPrey1 <- NULL
+    densDevPrey2 <- NULL
+    amplDevPrey2 <- NULL
+    densDevPred1 <- NULL
+    amplDevPred1 <- NULL
+    
+    for (n in 1:length(replicates)) {
+      # subset replicate
+      sub <- subset(res, res$replicate == replicates[n])
+      
+      if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+        # print(paste("replicate", n, "ended in extinction"))
+        
+      } else {
+        
+        # calculus
+        # subset after
+        subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+        
+        # compute dev from base line
+        densDevPrey1 <- c(densDevPrey1, mean(subAfter$prey1PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPrey1 <- c(amplDevPrey1, max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) #  - 1)
+        
+        # compute dev from base line
+        densDevPrey2 <- c(densDevPrey2, mean(subAfter$prey2PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPrey2 <- c(amplDevPrey2, max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) #  - 1)
+        
+        # compute dev from base line
+        densDevPred1 <- c(densDevPred1, mean(subAfter$predator1PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPred1 <- c(amplDevPred1, max(subAfter$predator1PopulationSize) - min(subAfter$predator1PopulationSize)) #  - 1)
+        
+      }
+    }
+    
+    # perform stats
+    baseMeanDensPrey1 = mean(densDevPrey1)
+    baseAmplitudPrey1 = mean(amplDevPrey1)
+    baseMeanDensPrey2 = mean(densDevPrey2)
+    baseAmplitudPrey2 = mean(amplDevPrey2)
+    baseMeanDensPred1 = mean(densDevPred1)
+    baseAmplitudPred1 = mean(amplDevPred1)
+    
+    # loop over the sim folders
+    for (k in 1:length(globalFol)) {
+      
+      # get results folder
+      resFol <- paste(folder, globalFol[k], sep = "/")
+      # print(paste("in", resFol))
+      # 
+      # # find stats folder and store path
+      # 
+      # get results files
+      statsFol <- list.files(resFol)
+      
+      # find stats folder and store path
+      statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+      print(paste("in", paste(resFol, statsFol, sep = "/")))
+      
+      results <- list.files(paste(resFol, statsFol, sep = "/"))
+      
+      # only csv files
+      results <- grep(pattern = c("merged"), x = results, value = T)
+      
+      # only the results files
+      results <- grep(pattern = c(keyword), x = results, value = T)
+      
+      # print(paste("in simFolder", globalFol[k]))
+      
+      # initiate new line
+      newLine <- NULL
+      
+      # get param values and nb of rep
+      # get param values and nb of rep
+      strg = globalFol[k]
+      
+      # strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
+      strg = unlist(strsplit(strg, split = "-")) # split according to "-"
+      strg = strg[-1] # take out non param elements
+      # strg = strg[-c(1, 2, 3, 4)] # take out non param elements
+      
+      # varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+      # baseValues = c(1, 100, 0.1, 10, 100)
+      
+      # get param values 
+      for (m in 1:length(varNames)) {
+        newLine <- c(newLine, ifelse(str_detect(string = strg, pattern = varNames[m]), as.numeric(sub(x = strg, pattern = paste(varNames[m], "*", sep = ""), replacement = "")), baseValues[m]))
+      }
+      
+      
+      for (j in 1:length(results)) {
+        
+        # # initiate extinctions counters
+        # pry1ext = 0
+        # pry2ext = 0
+        # predExt = 0
+        # 
+        # # loop over the results files
+        # for (m in 1:length(results)) {
+        #   
+        #   # print(paste("reading file ", results[m]))
+        #   # read results
+        #   res <- read.csv(paste(resFol, results[m], sep = "/"))
+        #   
+        #   # count extinctions
+        #   if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
+        #   if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
+        #   if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
+        #   
+        # } # end loop over files (replicates)
+        # 
+        # # update new line
+        # newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
+        
+        # # browse stats folder and read stats
+        # stats <- list.files(paste(resFol, statsFol, sep = "/"))
+        # stats <- grep(pattern = c("stats"), x = stats, value = T)
+        # stats <- grep(pattern = c(".csv"), x = stats, value = T)
+        
+        res <- read.csv(paste(resFol, statsFol, results[j], sep = "/"))
+        
+        # # create temporary table
+        # temp <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
+        
+        # subset merged results and move to temp only if no extinction
+        replicates <- levels(as.factor(res$replicate))
+        repNb = 0
+        densDevPrey1 <- NULL
+        amplDevPrey1 <- NULL
+        densDevPrey2 <- NULL
+        amplDevPrey2 <- NULL
+        densDevPred1 <- NULL
+        amplDevPred1 <- NULL
+        
+        for (n in 1:length(replicates)) {
+          # subset replicate
+          sub <- subset(res, res$replicate == replicates[n])
+          
+          if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+            print(paste("replicate", n, "ended in extinction"))
+            
+          } else {
+            # increase repNb 
+            repNb <- repNb + 1
+            
+            # calculus
+            # subset after
+            subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+            
+            # compute dev from base line
+            densDevPrey1 <- c(densDevPrey1, (mean(subAfter$prey1PopulationSize) - baseMeanDensPrey1)  / baseMeanDensPrey1)
+            
+            # compute amplitude dev
+            amplDevPrey1 <- c(amplDevPrey1, ((max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) - baseAmplitudPrey1) / baseAmplitudPrey1) #  - 1)
+            
+            # compute dev from base line
+            densDevPrey2 <- c(densDevPrey2, (mean(subAfter$prey2PopulationSize) - baseMeanDensPrey2)  / baseMeanDensPrey2)
+            
+            # compute amplitude dev
+            amplDevPrey2 <- c(amplDevPrey2, ((max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) - baseAmplitudPrey2) / baseAmplitudPrey2) #  - 1)
+            
+            # compute dev from base line
+            densDevPred1 <- c(densDevPred1, (mean(subAfter$predator1PopulationSize) - baseMeanDensPred1)  / baseMeanDensPred1)
+            
+            # compute amplitude dev
+            amplDevPred1 <- c(amplDevPred1, ((max(subAfter$predator1PopulationSize) - min(subAfter$predator1PopulationSize)) - baseAmplitudPred1) / baseAmplitudPred1) #  - 1)
+            
+          }
+        }
+        
+        # go to next pqrqm set if only extinctions
+        if (repNb == 0) {next}
+        
+        # add nb of replicates
+        newLine <- c(newLine, repNb)
+        
+        # # subset before pred introduction
+        # sub <- subset(res, subset = res$timeStep >= before[1] & res$timeStep < before[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100))
+        # 
+        # # subset after
+        # sub <- subset(res, subset = res$timeStep >= after[1] & res$timeStep <= after[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$predator1PopulationSizeMean), max(sub$predator1PopulationSizeMean), min(sub$predator1PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
+        #              mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
+        #              mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
+        #              mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+        
+        # perform stats
+        newLine <- c(newLine,
+                     mean(densDevPrey1), boot_sd_ci(densDevPrey1)[-1], min(densDevPrey1), max(densDevPrey1), mean(amplDevPrey1), boot_sd_ci(amplDevPrey1)[-1],
+                     mean(densDevPrey2), boot_sd_ci(densDevPrey2)[-1], min(densDevPrey2), max(densDevPrey2), mean(amplDevPrey2), boot_sd_ci(amplDevPrey2)[-1],
+                     mean(densDevPred1), boot_sd_ci(densDevPred1)[-1], min(densDevPred1), max(densDevPred1), mean(amplDevPred1), boot_sd_ci(amplDevPred1)[-1])
+        
+        # rbind the line to tab
+        tab <- rbind(tab, as.numeric(newLine))
+        
+      } # end loop over results folders
+      
+    } # end loop over globalFol
+    
+    # name columns
+    colnames(tab) <- headers
+    
+    # create local SA results folder in allStatsAndPlots and save table
+    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles-woExt", sep = "/")
+    # dir.create(path = newFolderDir)
+    write.csv(tab, file = paste(newFolderDir, "/woExt-wMinMaxDens-SAdevStats-allPop", content[i], ".csv", sep = ""), row.names = FALSE)
+    
+  } # end loop over folders
+  
+}
+SAallResults <- function(path, keyword = c("Results", "Snapshot"), pattern) { # , baseMeanDens, baseAmplitude
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c("folder"), x = content, value = T)
+  
+  # create headers list 
+  headers <- c("prey2avgOffs", "prey2convRate", "prey2catchProb", "prey2maxCons", "prey2resAva", 
+               "replicatesNb",
+               # "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
+               # "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
+               # "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
+               # "prey2growthBeforeMean", "prey2growthBeforeMax", "prey2growthBeforeMin",
+               # "prey1densAfterMean", "prey1densAfterMax", "prey1densAfterMin",
+               # "prey2densAfterMean", "prey2densAfterMax", "prey2densAfterMin",
+               # "predatorDensMean", "predatorDensMax", "predatorDensMin",
+               # "prey1growthAfterMean", "prey1growthAfterMax", "prey1growthAfterMin",
+               # "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
+               # "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
+               # "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
+               # "prey2catchesMean", "prey2catchesMax", "prey2catchesMin",
+               "prey1densityDevMean", "prey1densDevICinf", "prey1densDevICsup", "prey1densDevMin", "prey1densDevMax",
+               "prey2densityDevMean", "prey2densDevICinf", "prey2densDevICsup", "prey2densDevMin", "prey2densDevMax",
+               "pred1densityDevMean", "pred1densDevICinf", "pred1densDevICsup", "pred1densDevMin", "pred1densDevMax",
+               "prey1amplituDevMean", "prey1ampldevICinf", "prey1ampldevICsup",
+               "prey2amplituDevMean", "prey2ampldevICinf", "prey2ampldevICsup",
+               "pred1amplituDevMean", "pred1ampldevICinf", "pred1ampldevICsup",
+               "prey1catchRtDevMean", "prey1ctRtDevICinf", "prey1ctRtDevICsup", "prey1catchRtMin", "prey1densDevMax",
+               "prey2catchRtDevMean", "prey2ctRtDevICinf", "prey2ctRtDevICsup", "prey2catchRtMin", "prey2densDevMax")
+  
+  # set before after intervals
+  # tIntro = 210
+  tEnd = 1000
+  # before <- c(tIntro-100, tIntro)
+  after <- c(tEnd-250, tEnd)
+  
+  # loop over the folders
+  for (i in 1:length(content)) {
+    
+    # path to folder
+    # folder = paste("~/", path, content[i], sep = "")
+    folder = paste(path, content[i], sep = "")
+    print(paste("in localSA folder ", i, ": ", folder))# get the value of XparamName
+    
+    tab <- data.frame(matrix(ncol = length(headers), nrow = 0))
+    
+    # # name columns
+    # colnames(tab) <- headers
+    
+    # get content
+    globalFol = list.files(folder)
+    
+    # select only folders
+    globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
+    
+    ## compute baseMeanDens and Ampl
+    # find baseline param
+    simNames = c("avgOff", "cnvRte", "ctchPr", "maxCon", "resAva")
+    varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+    baseValues = c(1, 100, 0.1, 10, 100)
+    
+    # in which case are we
+    baseIndex = which(str_detect(string = content[i], pattern = simNames))
+    baseNam = varNames[baseIndex]
+    baseVal = baseValues[baseIndex]
+    
+    # open base folder
+    baseFol <- grep(pattern = c(paste(baseNam, baseVal, sep = "")), x = globalFol, value = T)[1]
+    
+    baseFolPath <- paste(folder, baseFol, sep = "/")
+    
+    # get results files
+    statsFol <- list.files(baseFolPath)
+    
+    # find stats folder and store path
+    statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+    print(paste("in", paste(baseFolPath, statsFol, sep = "/")))
+    
+    results <- list.files(paste(baseFolPath, statsFol, sep = "/"))
+    
+    # only csv files
+    results <- grep(pattern = c("merged"), x = results, value = T)
+    
+    # only the results files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    # read the merged results file
+    res <- read.csv(paste(baseFolPath, statsFol, results, sep = "/"))
+    
+    replicates <- levels(as.factor(res$replicate))
+    densDevPrey1 <- NULL
+    amplDevPrey1 <- NULL
+    densDevPrey2 <- NULL
+    amplDevPrey2 <- NULL
+    densDevPred1 <- NULL
+    amplDevPred1 <- NULL
+    ctRtDevPrey1 <- NULL
+    ctRtDevPrey2 <- NULL
+    
+    for (n in 1:length(replicates)) {
+      # subset replicate
+      sub <- subset(res, res$replicate == replicates[n])
+      
+      if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+        # print(paste("replicate", n, "ended in extinction"))
+        
+      } else {
+        
+        # calculus
+        # subset after
+        subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+        
+        # compute dev from base line
+        densDevPrey1 <- c(densDevPrey1, mean(subAfter$prey1PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPrey1 <- c(amplDevPrey1, max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) #  - 1)
+        
+        # compute dev from base line
+        densDevPrey2 <- c(densDevPrey2, mean(subAfter$prey2PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPrey2 <- c(amplDevPrey2, max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) #  - 1)
+        
+        # compute dev from base line
+        densDevPred1 <- c(densDevPred1, mean(subAfter$predator1PopulationSize))
+        
+        # compute amplitude dev
+        amplDevPred1 <- c(amplDevPred1, max(subAfter$predator1PopulationSize) - min(subAfter$predator1PopulationSize)) #  - 1)
+        
+        # compute catch rate dev from base line
+        ctRtDevPrey1 <- c(ctRtDevPrey1, mean(subAfter$prey1catches/subAfter$prey1PopulationSize))
+        
+        # compute catch rate dev
+        ctRtDevPrey2 <- c(ctRtDevPrey2, mean(subAfter$prey2catches/subAfter$prey2PopulationSize)) #  - 1)
+      }
+    }
+    
+    # perform stats
+    baseMeanDensPrey1 = mean(densDevPrey1)
+    baseAmplitudPrey1 = mean(amplDevPrey1)
+    baseMeanDensPrey2 = mean(densDevPrey2)
+    baseAmplitudPrey2 = mean(amplDevPrey2)
+    baseMeanDensPred1 = mean(densDevPred1)
+    baseAmplitudPred1 = mean(amplDevPred1)
+    baseMeanCtRtPrey1 = mean(ctRtDevPrey1)
+    baseMeanCtRtPrey2 = mean(ctRtDevPrey2)
+    
+    # loop over the sim folders
+    for (k in 1:length(globalFol)) {
+      
+      # get results folder
+      resFol <- paste(folder, globalFol[k], sep = "/")
+      # print(paste("in", resFol))
+      # 
+      # # find stats folder and store path
+      # 
+      # get results files
+      statsFol <- list.files(resFol)
+      
+      # find stats folder and store path
+      statsFol <- grep(pattern = c("stats"), x = statsFol, value = T)
+      print(paste("in", paste(resFol, statsFol, sep = "/")))
+      
+      results <- list.files(paste(resFol, statsFol, sep = "/"))
+      
+      # only csv files
+      results <- grep(pattern = c("merged"), x = results, value = T)
+      
+      # only the results files
+      results <- grep(pattern = c(keyword), x = results, value = T)
+      
+      # print(paste("in simFolder", globalFol[k]))
+      
+      # initiate new line
+      newLine <- NULL
+      
+      # get param values and nb of rep
+      # get param values and nb of rep
+      strg = globalFol[k]
+      
+      # strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
+      strg = unlist(strsplit(strg, split = "-")) # split according to "-"
+      strg = strg[-1] # take out non param elements
+      # strg = strg[-c(1, 2, 3, 4)] # take out non param elements
+      
+      # varNames = c("py2offs", "py2cvRt", "py2ctPr", "py2cons", "py2res")
+      # baseValues = c(1, 100, 0.1, 10, 100)
+      
+      # get param values 
+      for (m in 1:length(varNames)) {
+        newLine <- c(newLine, ifelse(str_detect(string = strg, pattern = varNames[m]), as.numeric(sub(x = strg, pattern = paste(varNames[m], "*", sep = ""), replacement = "")), baseValues[m]))
+      }
+      
+      
+      for (j in 1:length(results)) {
+        
+        # # initiate extinctions counters
+        # pry1ext = 0
+        # pry2ext = 0
+        # predExt = 0
+        # 
+        # # loop over the results files
+        # for (m in 1:length(results)) {
+        #   
+        #   # print(paste("reading file ", results[m]))
+        #   # read results
+        #   res <- read.csv(paste(resFol, results[m], sep = "/"))
+        #   
+        #   # count extinctions
+        #   if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
+        #   if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
+        #   if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
+        #   
+        # } # end loop over files (replicates)
+        # 
+        # # update new line
+        # newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
+        
+        # # browse stats folder and read stats
+        # stats <- list.files(paste(resFol, statsFol, sep = "/"))
+        # stats <- grep(pattern = c("stats"), x = stats, value = T)
+        # stats <- grep(pattern = c(".csv"), x = stats, value = T)
+        
+        res <- read.csv(paste(resFol, statsFol, results[j], sep = "/"))
+        
+        # # create temporary table
+        # temp <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
+        
+        # subset merged results and move to temp only if no extinction
+        replicates <- levels(as.factor(res$replicate))
+        repNb = 0
+        densDevPrey1 <- NULL
+        amplDevPrey1 <- NULL
+        densDevPrey2 <- NULL
+        amplDevPrey2 <- NULL
+        densDevPred1 <- NULL
+        amplDevPred1 <- NULL
+        ctRtDevPrey1 <- NULL
+        ctRtDevPrey2 <- NULL
+        
+        for (n in 1:length(replicates)) {
+          # subset replicate
+          sub <- subset(res, res$replicate == replicates[n])
+          
+          if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+            print(paste("replicate", n, "ended in extinction"))
+            
+          } else {
+            # increase repNb 
+            repNb <- repNb + 1
+            
+            # calculus
+            # subset after
+            subAfter <- subset(sub, subset = sub$timeStep >= after[1] & sub$timeStep <= after[2])
+            
+            # compute dev from base line
+            densDevPrey1 <- c(densDevPrey1, (mean(subAfter$prey1PopulationSize) - baseMeanDensPrey1)  / baseMeanDensPrey1)
+            
+            # compute amplitude dev
+            amplDevPrey1 <- c(amplDevPrey1, ((max(subAfter$prey1PopulationSize) - min(subAfter$prey1PopulationSize)) - baseAmplitudPrey1) / baseAmplitudPrey1) #  - 1)
+            
+            # compute dev from base line
+            densDevPrey2 <- c(densDevPrey2, (mean(subAfter$prey2PopulationSize) - baseMeanDensPrey2)  / baseMeanDensPrey2)
+            
+            # compute amplitude dev
+            amplDevPrey2 <- c(amplDevPrey2, ((max(subAfter$prey2PopulationSize) - min(subAfter$prey2PopulationSize)) - baseAmplitudPrey2) / baseAmplitudPrey2) #  - 1)
+            
+            # compute dev from base line
+            densDevPred1 <- c(densDevPred1, (mean(subAfter$predator1PopulationSize) - baseMeanDensPred1)  / baseMeanDensPred1)
+            
+            # compute amplitude dev
+            amplDevPred1 <- c(amplDevPred1, ((max(subAfter$predator1PopulationSize) - min(subAfter$predator1PopulationSize)) - baseAmplitudPred1) / baseAmplitudPred1) #  - 1)
+            
+            # compute catch rate dev from base line
+            ctRtDevPrey1 <- c(ctRtDevPrey1, (mean(subAfter$prey1catches/subAfter$prey1PopulationSize) - baseMeanCtRtPrey1) / baseMeanCtRtPrey1)
+            
+            # compute catch rate dev
+            ctRtDevPrey2 <- c(ctRtDevPrey2, (mean(subAfter$prey2catches/subAfter$prey2PopulationSize) - baseMeanCtRtPrey2) / baseMeanCtRtPrey2) #  - 1)
+          }
+        }
+        
+        # go to next pqrqm set if only extinctions
+        if (repNb == 0) {next}
+        
+        # add nb of replicates
+        newLine <- c(newLine, repNb)
+        
+        # # subset before pred introduction
+        # sub <- subset(res, subset = res$timeStep >= before[1] & res$timeStep < before[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100))
+        # 
+        # # subset after
+        # sub <- subset(res, subset = res$timeStep >= after[1] & res$timeStep <= after[2])
+        # # get before measures
+        # newLine <- c(newLine, 
+        #              mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+        #              mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+        #              mean(sub$predator1PopulationSizeMean), max(sub$predator1PopulationSizeMean), min(sub$predator1PopulationSizeMean),
+        #              mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+        #              mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
+        #              mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
+        #              mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
+        #              mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+        
+        # perform stats
+        newLine <- c(newLine,
+                     mean(densDevPrey1), boot_sd_ci(densDevPrey1)[-1], min(densDevPrey1), max(densDevPrey1), 
+                     mean(densDevPrey2), boot_sd_ci(densDevPrey2)[-1], min(densDevPrey2), max(densDevPrey2), 
+                     mean(densDevPred1), boot_sd_ci(densDevPred1)[-1], min(densDevPred1), max(densDevPred1),
+                     mean(amplDevPrey1), boot_sd_ci(amplDevPrey1)[-1],
+                     mean(amplDevPrey2), boot_sd_ci(amplDevPrey2)[-1],
+                     mean(amplDevPred1), boot_sd_ci(amplDevPred1)[-1],
+                     mean(ctRtDevPrey1), boot_sd_ci(ctRtDevPrey1)[-1], min(ctRtDevPrey1), max(ctRtDevPrey1),
+                     mean(ctRtDevPrey2), boot_sd_ci(ctRtDevPrey2)[-1], min(ctRtDevPrey2), max(ctRtDevPrey2))
+        
+        # rbind the line to tab
+        tab <- rbind(tab, as.numeric(newLine))
+        
+      } # end loop over results folders
+      
+    } # end loop over globalFol
+    
+    # name columns
+    colnames(tab) <- headers
+    
+    # create local SA results folder in allStatsAndPlots and save table
+    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles-woExt", sep = "/")
+    # dir.create(path = newFolderDir)
+    write.csv(tab, file = paste(newFolderDir, "/woExt-allSAdevStats-allPop", content[i], ".csv", sep = ""), row.names = FALSE)
+    
+  } # end loop over folders
+  
+}
+
+
 # Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
 Path = "C:/Users/adb3/Desktop/PhD/GitKraken/newLocalSA/"
 Pattern = "newSA-"
@@ -3926,3 +4883,7 @@ Keyword = "Results"
 # BaseMeanAmplitude = ds$prey1densAfterMax[which(ds$prey2avgOffs == 1)]-ds$prey1densAfterMin[which(ds$prey2avgOffs == 1)]
 
 SAcondensedResults(path = Path, keyword = Keyword, pattern = Pattern) # , baseMeanDens = BaseMeanDens, baseMeanAmplitute = BaseMeanAmplitude
+SAcondensedResultsPrey2(path = Path, keyword = Keyword, pattern = Pattern) # , baseMeanDens = BaseMeanDens, baseMeanAmplitute = BaseMeanAmplitude
+SAcondensedResultsAll(path = Path, keyword = Keyword, pattern = Pattern)
+
+SAallResults(path = Path, keyword = Keyword, pattern = Pattern) 
