@@ -721,7 +721,7 @@ statsResultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern,
       # }
       
       # get name
-      name <- paste(statsFol, "/", results[j], sep = "")
+      name <- paste(simFol, "/", results[j], sep = "")
       
       # read table
       stats <- read.csv(name)
@@ -898,3 +898,4 @@ statsResultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern,
   } # end loop over local SA folders
   
 } # end of function
+
