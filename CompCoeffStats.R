@@ -241,7 +241,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
       # and copy in the global stats folder
       file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
       
-      # plot and save figure
+      # plot and save density figure
       data <- tab
       
       x = data$timeStep
@@ -260,7 +260,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
       tIntro = 210
       
       fig <- ggplot(data, aes(x)) + 
-        geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+        geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*ymax = 1.05*max(c(max(y1max), max(y2max), max(y3max)))), alpha=0.5, fill = "lightgrey") +
         geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
         geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
         geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
@@ -279,7 +279,47 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
       ggsave(filename = paste("stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
       
       # and copy in the global stats folder
-      file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+      file.copy(from = paste(statsFol, "/stats", keyword, "-density-", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+      
+      # plot and save growth rate figure
+      data <- read.csv(paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""))
+      
+      x = data$timeStep
+      y1 = data$prey1growthRateMean/100
+      y2 = data$prey2growthRateMean/100
+      y3 = data$predatorGrowthRateMean/100
+      y1min = data$prey1growthRateICinf/100
+      y2min = data$prey2growthRateICinf/100
+      y3min = data$predatorGrowthRateICinf/100
+      y1max = data$prey1growthRateICsup/100
+      y2max = data$prey2growthRateICsup/100
+      y3max = data$predatorGrowthRateICsup/100
+      y1c = "red"
+      y2c = "blue"
+      y3c = "orange"
+      tIntro = 210
+      
+      fig <- ggplot(data, aes(x)) + 
+        geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 1.05*min(c(min(y1min), min(y2min), min(y3min))), ymax = 1.05*max(c(max(y1max), max(y2max), max(y3max)))), alpha=0.5, fill = "lightgrey") +
+        geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+        geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+        geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+        geom_line(aes(y = y1), color = y1c) +
+        geom_line(aes(y = y2), color = y2c) +
+        geom_line(aes(y = y3), color = y3c) +
+        # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+        # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+        # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+        labs(x = "Time steps", y = "Realised growth rate") +
+        scale_colour_manual(name='Populations',
+                            breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                            values=c(y1c, y2c, y3c))
+      
+      # save plot in this folder
+      ggsave(filename = paste("stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+      
+      # and copy in the global stats folder
+      file.copy(from = paste(statsFol, "/stats", keyword, "-growthRate", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
       
     } # end loop over sim folders
     
@@ -1979,7 +2019,7 @@ statsResultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern,
         tIntro = 210
         
         fig <- ggplot(data, aes(x)) + 
-          geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+          geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(c(max(y1max), max(y2max), max(y3max)))), alpha=0.5, fill = "lightgrey") +
           geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
           geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
           geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
@@ -2004,7 +2044,52 @@ statsResultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern,
           # save plot in global folder
           ggsave(filename = paste("woExt-stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = paste(folder, "/allStatsAndPlots/", keyword, "Files-woExt", sep = ""), plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
         }
-      
+        
+        # plot and save growth rate figure
+        data <- read.csv(paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""))
+        
+        x = data$timeStep
+        y1 = data$prey1growthRateMean/100
+        y2 = data$prey2growthRateMean/100
+        y3 = data$predatorGrowthRateMean/100
+        y1min = data$prey1growthRateICinf/100
+        y2min = data$prey2growthRateICinf/100
+        y3min = data$predatorGrowthRateICinf/100
+        y1max = data$prey1growthRateICsup/100
+        y2max = data$prey2growthRateICsup/100
+        y3max = data$predatorGrowthRateICsup/100
+        y1c = "red"
+        y2c = "blue"
+        y3c = "orange"
+        tIntro = 210
+        
+        fig <- ggplot(data, aes(x)) + 
+          geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 1.05*min(c(min(y1min), min(y2min), min(y3min))), ymax = 1.05*max(c(max(y1max), max(y2max), max(y3max)))), alpha=0.5, fill = "lightgrey") +
+          geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+          geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+          geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+          geom_line(aes(y = y1), color = y1c) +
+          geom_line(aes(y = y2), color = y2c) +
+          geom_line(aes(y = y3), color = y3c) +
+          # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+          # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+          # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+          labs(x = "Time steps", y = "Realised growth rate") +
+          scale_colour_manual(name='Populations',
+                              breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                              values=c(y1c, y2c, y3c))
+        
+        if (exclude.ext == FALSE) {
+          # save plot in this folder
+          ggsave(filename = paste("stats", keyword, "-growthRate-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+          
+          # and copy in the global stats folder
+          file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+        } else {
+          # save plot in global folder
+          ggsave(filename = paste("woExt-stats", keyword, "-growthRate-", simFol[j], ".pdf", sep = ""), path = paste(folder, "/allStatsAndPlots/", keyword, "Files-woExt", sep = ""), plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+        }
+        
       } # end of else loop
       
     } # end loop over sim folders

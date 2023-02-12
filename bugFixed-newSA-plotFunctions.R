@@ -860,7 +860,7 @@ plotGrRt <- function(dataSet, xVal, baselineVal, recWdt = c(0,0), posNud, xLabel
 
 ######## including extinction ########
 
-#### resource abundance ####
+# res ava
 
 # Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
 # Path = "/home/adrian/Documents/GitKraken/ne"
@@ -1095,9 +1095,9 @@ plotSADensDevAllPop <- function(dataSet, xVal, xLabel, wd, posNud, ptSize, displ
     geom_line(aes(y = y1), color = y1c, size=1, alpha = 0.2, position = position_nudge(x = -posNud)) +
     geom_line(aes(y = y2), color = y2c, size=1, alpha = 0.2, position = position_nudge(x = 0)) +
     geom_line(aes(y = y3), color = y3c, size=1, alpha = 0.2, position = position_nudge(x = posNud)) +
-    geom_errorbar(aes(ymin=y1min, ymax=y1max), width=wd, col=y1c, position = position_nudge(x = -posNud)) +
-    geom_errorbar(aes(ymin=y2min, ymax=y2max), width=wd, col=y2c, position = position_nudge(x = 0)) +
-    geom_errorbar(aes(ymin=y3min, ymax=y3max), width=wd, col=y3c, position = position_nudge(x = posNud)) +
+    geom_errorbar(aes(ymin=y1min, ymax=y1max), size = 0.4, width=wd, col=y1c, position = position_nudge(x = -posNud)) +
+    geom_errorbar(aes(ymin=y2min, ymax=y2max), size = 0.4, width=wd, col=y2c, position = position_nudge(x = 0)) +
+    geom_errorbar(aes(ymin=y3min, ymax=y3max), size = 0.4, width=wd, col=y3c, position = position_nudge(x = posNud)) +
     geom_point(aes(y=y1), shape=21, size=ptSize, fill="white", col=y1c, position = position_nudge(x = -posNud)) +
     geom_point(aes(y=y2), shape=22, size=ptSize, fill="white", col=y2c, position = position_nudge(x = 0)) +
     geom_point(aes(y=y3), shape=24, size=ptSize, fill="white", col=y3c, position = position_nudge(x = posNud)) +
@@ -1134,9 +1134,9 @@ plotSACtRtDevAllPop <- function(dataSet, xVal, xLabel, wd, posNud, ptSize, displ
     geom_line(aes(y = y1), color = y1c, size=1, alpha = 0.2, position = position_nudge(x = -posNud)) +
     geom_line(aes(y = y2), color = y2c, size=1, alpha = 0.2, position = position_nudge(x = posNud)) +
     # geom_line(aes(y = y3), color = y3c, size=1, alpha = 0.2, position = position_nudge(x = posNud)) +
-    geom_errorbar(aes(ymin=y1min, ymax=y1max), width=wd, col=y1c, position = position_nudge(x = -posNud)) +
-    geom_errorbar(aes(ymin=y2min, ymax=y2max), width=wd, col=y2c, position = position_nudge(x = posNud)) +
-    # geom_errorbar(aes(ymin=y3min, ymax=y3max), width=wd, col=y3c, position = position_nudge(x = posNud)) +
+    geom_errorbar(aes(ymin=y1min, ymax=y1max), size = 0.4, width=wd, col=y1c, position = position_nudge(x = -posNud)) +
+    geom_errorbar(aes(ymin=y2min, ymax=y2max), size = 0.4, width=wd, col=y2c, position = position_nudge(x = posNud)) +
+    # geom_errorbar(aes(ymin=y3min, ymax=y3ma, size = 0.4x), width=wd, col=y3c, position = position_nudge(x = posNud)) +
     geom_point(aes(y=y1), shape=21, size=ptSize, fill="white", col=y1c, position = position_nudge(x = -posNud)) +
     geom_point(aes(y=y2), shape=22, size=ptSize, fill="white", col=y2c, position = position_nudge(x = posNud)) +
     # geom_point(aes(y=y3), shape=24, size=2.5, fill="white", col=y3c, position = position_nudge(x = posNud)) +
@@ -1173,9 +1173,9 @@ plotSAamplDevAllPop <- function(dataSet, xVal, xLabel, wd, posNud, ptSize, displ
     geom_line(aes(y = y1), color = y1c, size=1, alpha = 0.2, position = position_nudge(x = -posNud)) +
     geom_line(aes(y = y2), color = y2c, size=1, alpha = 0.2, position = position_nudge(x = 0)) +
     geom_line(aes(y = y3), color = y3c, size=1, alpha = 0.2, position = position_nudge(x = posNud)) +
-    geom_errorbar(aes(ymin=y1min, ymax=y1max), width=wd, col=y1c, position = position_nudge(x = -posNud)) +
-    geom_errorbar(aes(ymin=y2min, ymax=y2max), width=wd, col=y2c, position = position_nudge(x = 0)) +
-    geom_errorbar(aes(ymin=y3min, ymax=y3max), width=wd, col=y3c, position = position_nudge(x = posNud)) +
+    geom_errorbar(aes(ymin=y1min, ymax=y1max), size = 0.4, width=wd, col=y1c, position = position_nudge(x = -posNud)) +
+    geom_errorbar(aes(ymin=y2min, ymax=y2max), size = 0.4, width=wd, col=y2c, position = position_nudge(x = 0)) +
+    geom_errorbar(aes(ymin=y3min, ymax=y3max), size = 0.4, width=wd, col=y3c, position = position_nudge(x = posNud)) +
     geom_point(aes(y=y1), shape=21, size=ptSize, fill="white", col=y1c, position = position_nudge(x = -posNud)) +
     geom_point(aes(y=y2), shape=22, size=ptSize, fill="white", col=y2c, position = position_nudge(x = 0)) +
     geom_point(aes(y=y3), shape=24, size=ptSize, fill="white", col=y3c, position = position_nudge(x = posNud)) +
@@ -1341,6 +1341,6 @@ filePath = paste(folderPath, "woExt-allSAdevStats-allPopfolder-resAva.csv", sep 
 
 data <- read.csv(filePath)
 
-plotSADensDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 0.1, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-allDensDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
-plotSACtRtDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 0.1, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-catchRtDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
-plotSAamplDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 0.1, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-ampltudDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSADensDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 2, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-allDensDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSACtRtDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 2, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-catchRtDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
+plotSAamplDevAllPop(dataSet = data, xVal = data$prey2resAva, xLabel = "prey 2 resource abundance", wd = 2, posNud = 2.5, ptSize = 2.0, display = TRUE, saveName = "newSA-ampltudDev-prey2resAva-woExt.pdf", savePath = folderPath, save = TRUE)
